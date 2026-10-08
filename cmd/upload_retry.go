@@ -17,12 +17,15 @@ import (
 // newUploadRetryCommand 构建 `upload retry`：只重试状态文件中记录的上传失败项。
 func newUploadRetryCommand() *cobra.Command {
 	var (
-		stateFile   string
-		product     string
-		release     string
-		docDir      string
-		retry       int
-		concurrency int
+		stateFile    string
+		product      string
+		release      string
+		docDir       string
+		retry        int
+		concurrency  int
+		waitParse    bool
+		pollInterval time.Duration
+		parseTimeout time.Duration
 	)
 	cmd := &cobra.Command{
 		Use:   "retry",
@@ -55,7 +58,13 @@ func newUploadRetryCommand() *cobra.Command {
 			if concurrency < 1 {
 				return fmt.Errorf("--concurrency 必须大于 0")
 			}
-			return runUploadRetry(cmd, path, docDir, retry, concurrency)
+			if waitParse && pollInterval <= 0 {
+				return fmt.Errorf("--poll-interval 必须大于 0")
+			}
+			if waitParse && parseTimeout <= 0 {
+				return fmt.Errorf("--parse-timeout 必须大于 0")
+			}
+			return runUploadRetry(cmd, path, docDir, retry, concurrency, waitParse, pollInterval, parseTimeout)
 		},
 	}
 
@@ -66,10 +75,15 @@ func newUploadRetryCommand() *cobra.Command {
 	flags.StringVar(&docDir, "doc-dir", envOr(envDocDir, ""), "文档根目录，用于相对路径失效时定位文件（环境变量 DOC_DIR）")
 	flags.IntVar(&retry, "retry", 2, "失败文档的重试次数")
 	flags.IntVarP(&concurrency, "concurrency", "j", 4, "并发上传数")
+	flags.BoolVar(&waitParse, "wait-parse", true, "上传后等待文档解析完成再返回（关闭后仅确认上传成功）")
+	flags.DurationVar(&pollInterval, "poll-interval", 2*time.Second, "解析状态轮询间隔（配合 --wait-parse）")
+	flags.DurationVar(&parseTimeout, "parse-timeout", 10*time.Minute, "单个文档解析等待超时（配合 --wait-parse）")
 	return cmd
 }
 
-func runUploadRetry(cmd *cobra.Command, statePath, docDir string, retry, concurrency int) error {
+func runUploadRetry(cmd *cobra.Command, statePath, docDir string, retry, concurrency int,
+	waitParse bool, pollInterval, parseTimeout time.Duration,
+) error {
 	ctx := cmd.Context()
 
 	state, err := loadUploadState(statePath)
@@ -173,6 +187,9 @@ func runUploadRetry(cmd *cobra.Command, statePath, docDir string, retry, concurr
 			func(ctx context.Context, path string) (*client.Knowledge, error) {
 				return uploadWithRetry(ctx, api, kbID, taskByPath[path], retry)
 			}, progressFunc(cmd, len(uploadPaths)))
+		if waitParse {
+			applyParseWait(ctx, cmd, api, results, concurrency, pollInterval, parseTimeout)
+		}
 		for _, r := range results {
 			t := taskByPath[r.Item]
 			updates[idxByPath[r.Item]] = uploadRecord{

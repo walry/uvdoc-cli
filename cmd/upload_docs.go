@@ -44,6 +44,9 @@ type uploadOptions struct {
 	recursive    bool
 	exts         []string
 	stateFile    string
+	waitParse    bool
+	pollInterval time.Duration
+	parseTimeout time.Duration
 }
 
 // uploadTask 描述一个待上传文档及其处理方式
@@ -123,6 +126,9 @@ func newPublishUploadCommand() *cobra.Command {
 	flags.BoolVarP(&o.recursive, "recursive", "r", true, "递归扫描 --doc-dir 下的子目录")
 	flags.StringSliceVar(&o.exts, "ext", nil, "按扩展名过滤，例如 pdf,docx（默认不过滤）")
 	flags.StringVar(&o.stateFile, "state-file", "", "上传结果保存路径（默认 .uvdoc/upload-<知识库>.json）")
+	flags.BoolVar(&o.waitParse, "wait-parse", true, "上传后等待文档解析完成再返回（关闭后仅确认上传成功）")
+	flags.DurationVar(&o.pollInterval, "poll-interval", 2*time.Second, "解析状态轮询间隔（配合 --wait-parse）")
+	flags.DurationVar(&o.parseTimeout, "parse-timeout", 10*time.Minute, "单个文档解析等待超时（配合 --wait-parse）")
 
 	cmd.AddCommand(newUploadRetryCommand())
 	return cmd
@@ -143,6 +149,12 @@ func validateUploadOptions(o uploadOptions) error {
 	}
 	if o.concurrency < 1 {
 		return fmt.Errorf("--concurrency 必须大于 0")
+	}
+	if o.waitParse && o.pollInterval <= 0 {
+		return fmt.Errorf("--poll-interval 必须大于 0")
+	}
+	if o.waitParse && o.parseTimeout <= 0 {
+		return fmt.Errorf("--parse-timeout 必须大于 0")
 	}
 	info, err := os.Stat(o.docDir)
 	if err != nil {
@@ -245,6 +257,10 @@ func runUpload(cmd *cobra.Command, o uploadOptions) error {
 			func(ctx context.Context, path string) (*client.Knowledge, error) {
 				return uploadWithRetry(ctx, api, kb.ID, taskByPath[path], o.retry)
 			}, progressFunc(cmd, len(toUpload)))
+		// 上传成功后等待服务端解析完成，使最终状态为“上传成功且解析完成”。
+		if o.waitParse {
+			applyParseWait(ctx, cmd, api, results, o.concurrency, o.pollInterval, o.parseTimeout)
+		}
 		for _, r := range results {
 			t := taskByPath[r.Item]
 			records[r.Item] = uploadRecord{
@@ -297,8 +313,12 @@ func runUpload(cmd *cobra.Command, o uploadOptions) error {
 	writeTable(cmd, []string{"FILE", "ACTION", "STATUS", "KNOWLEDGE_ID", "ERROR"}, rows)
 
 	uploaded, unchanged, duplicate, deleted, failed := countUploadRecords(all)
-	footerf(cmd, "上传/更新成功 %d，未变化跳过 %d，重复跳过 %d，删除远端 %d，失败 %d\n",
-		uploaded, unchanged, duplicate, deleted, failed)
+	uploadLabel := "上传成功"
+	if o.waitParse {
+		uploadLabel = "上传并解析成功"
+	}
+	footerf(cmd, "%s %d，未变化跳过 %d，重复跳过 %d，删除远端 %d，失败 %d\n",
+		uploadLabel, uploaded, unchanged, duplicate, deleted, failed)
 	footerf(cmd, "结果已保存到 %s\n", statePath)
 	if failed > 0 {
 		return fmt.Errorf("%d 个文档处理失败（结果见 %s，可重新运行以重试）", failed, statePath)
