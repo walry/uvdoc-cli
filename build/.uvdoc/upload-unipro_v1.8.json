@@ -1,0 +1,110 @@
+{
+  "product": "unipro",
+  "release": "v1.8",
+  "knowledge_base": "unipro_v1.8",
+  "knowledge_base_id": "e1254fb4-00a0-461f-b060-0a736d2e8f5a",
+  "doc_dir": "files",
+  "started_at": "2026-09-11T13:51:09.910301244+08:00",
+  "finished_at": "2026-09-11T13:51:11.34610627+08:00",
+  "results": [
+    {
+      "path": "files/2024中国人寿微信理赔操作手册.pdf",
+      "file_name": "2024中国人寿微信理赔操作手册.pdf",
+      "hash": "b68f29bbc7d8c9833fd55c4bda9752b0",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "abfbf45f-aa77-47ad-87c4-109daf47729d",
+      "attempts": 1
+    },
+    {
+      "path": "files/2026 公司团建费用及活动管理使用细则.pdf",
+      "file_name": "2026 公司团建费用及活动管理使用细则.pdf",
+      "hash": "c3f45abde13bd6a2000bdda66456a997",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "717fb56a-364f-4b4a-91a0-46fbd1332cbf",
+      "attempts": 1
+    },
+    {
+      "path": "files/The-Complete-Guide-to-Building-Skill-for-Claude.pdf",
+      "file_name": "The-Complete-Guide-to-Building-Skill-for-Claude.pdf",
+      "hash": "fab163c4c9467659f98602f9e55ef437",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "a98e0a91-4154-4bad-be88-01cb8fcbed81",
+      "attempts": 1
+    },
+    {
+      "path": "files/UniPro 团队与产品介绍.pptx",
+      "file_name": "UniPro 团队与产品介绍.pptx",
+      "hash": "409ea98fe1e3e3577c903525a65ad3bd",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "4227cd27-479f-4346-bedf-94d83a558640",
+      "attempts": 1
+    },
+    {
+      "path": "files/feishu_agent_permission.txt",
+      "file_name": "feishu_agent_permission.txt",
+      "hash": "49c55b9b7e55192e8fd20e9efb6ccb98",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "dde4461e-5501-42ce-9cf8-cb9ae83a18c0",
+      "attempts": 1
+    },
+    {
+      "path": "files/sub/新建文本文档 (4).txt",
+      "file_name": "新建文本文档 (4).txt",
+      "hash": "da8b344daf4213751b0cd6ce4d313127",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "f02e0eb9-d488-4ac6-8f56-ba6f2c67cdcf",
+      "attempts": 1
+    },
+    {
+      "path": "files/亦庄办公室周边信息汇总.pdf",
+      "file_name": "亦庄办公室周边信息汇总.pdf",
+      "hash": "e157d1f272226e5d83024fe60bcabb7c",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "5cd145e5-70cc-4284-9c39-5a4ed18e2a9f",
+      "attempts": 1
+    },
+    {
+      "path": "files/工作项提示词v1.txt",
+      "file_name": "工作项提示词v1.txt",
+      "hash": "6b2dc32de6063586b2e410d1e0aa3001",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "daef170e-aafc-42cc-bc03-864b16616c11",
+      "attempts": 1
+    },
+    {
+      "path": "files/常用命令速记.txt",
+      "file_name": "常用命令速记.txt",
+      "hash": "23b4f49b32f9c9125dbcc8628694757f",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "8d8ea123-334e-4bab-97d7-45bbe27c7843",
+      "attempts": 1
+    },
+    {
+      "path": "files/新建文本文档 (2).txt",
+      "file_name": "新建文本文档 (2).txt",
+      "hash": "5d862aca50486754054d0c4e6f7e5170",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "32a99de4-06f7-4aa0-a8d7-283f9828e245",
+      "attempts": 1
+    },
+    {
+      "path": "files/新建文本文档 (6).txt",
+      "file_name": "新建文本文档 (6).txt",
+      "hash": "d1746d98bd68e06b0dc6e5bd380fb469",
+      "action": "create",
+      "status": "ok",
+      "knowledge_id": "4cb38324-9351-441c-8bb6-5bcae1dd8374",
+      "attempts": 1
+    }
+  ]
+}
