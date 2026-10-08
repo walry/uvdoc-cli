@@ -24,6 +24,12 @@ const (
 	envRelease = "RELEASE_NAME"
 )
 
+// 新建知识库会自动共享到该固定名称的共享空间，权限为只读。
+const (
+	uvDocSharedSpaceName = "UVDoc共享知识库"
+	uvDocSharePermission = "viewer"
+)
+
 // 单个文档的处理动作
 const (
 	actionCreate    = "create"
@@ -191,7 +197,11 @@ func runUpload(cmd *cobra.Command, o uploadOptions) error {
 		return err
 	}
 	if created {
-		footerf(cmd, "已创建知识库 %s (%s)\n", kb.Name, kb.ID)
+		// 新建的知识库自动共享到固定名称的共享空间。
+		if err := shareNewKnowledgeBase(ctx, api, kb.ID); err != nil {
+			return err
+		}
+		footerf(cmd, "已创建知识库 %s (%s)，并共享到 %s\n", kb.Name, kb.ID, uvDocSharedSpaceName)
 	} else {
 		footerf(cmd, "使用已存在知识库 %s (%s)\n", kb.Name, kb.ID)
 	}
@@ -356,6 +366,24 @@ func ensureKnowledgeBase(ctx context.Context, api *client.Client, name string) (
 		return nil, false, err
 	}
 	return created, true, nil
+}
+
+// shareNewKnowledgeBase 把新建的知识库按固定名称共享到 UVDoc 共享空间（只读）。
+// 找不到共享空间或共享失败时返回错误。
+func shareNewKnowledgeBase(ctx context.Context, api *client.Client, kbID string) error {
+	orgs, err := api.ListMyOrganizations(ctx)
+	if err != nil {
+		return fmt.Errorf("查询共享空间失败: %w", err)
+	}
+	for _, org := range orgs {
+		if org.Name == uvDocSharedSpaceName {
+			if _, err := api.ShareKnowledgeBase(ctx, kbID, org.ID, uvDocSharePermission); err != nil {
+				return fmt.Errorf("共享知识库到 %s 失败: %w", uvDocSharedSpaceName, err)
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("未找到名为 %q 的共享空间", uvDocSharedSpaceName)
 }
 
 // listAllKnowledge 自动翻页拉取知识库中的全部文档。
