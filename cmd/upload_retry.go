@@ -61,8 +61,8 @@ func newUploadRetryCommand() *cobra.Command {
 			if waitParse && pollInterval <= 0 {
 				return fmt.Errorf("--poll-interval 必须大于 0")
 			}
-			if waitParse && parseTimeout <= 0 {
-				return fmt.Errorf("--parse-timeout 必须大于 0")
+			if waitParse && parseTimeout < 0 {
+				return fmt.Errorf("--parse-timeout 不能为负数")
 			}
 			return runUploadRetry(cmd, path, docDir, retry, concurrency, waitParse, pollInterval, parseTimeout)
 		},
@@ -77,7 +77,7 @@ func newUploadRetryCommand() *cobra.Command {
 	flags.IntVarP(&concurrency, "concurrency", "j", 4, "并发上传数")
 	flags.BoolVar(&waitParse, "wait-parse", true, "上传后等待文档解析完成再返回（关闭后仅确认上传成功）")
 	flags.DurationVar(&pollInterval, "poll-interval", 2*time.Second, "解析状态轮询间隔（配合 --wait-parse）")
-	flags.DurationVar(&parseTimeout, "parse-timeout", 10*time.Minute, "单个文档解析等待超时（配合 --wait-parse）")
+	flags.DurationVar(&parseTimeout, "parse-timeout", 0, "单个文档解析等待超时，0 表示不超时（配合 --wait-parse）")
 	return cmd
 }
 

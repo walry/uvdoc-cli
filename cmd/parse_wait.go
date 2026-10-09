@@ -88,9 +88,6 @@ func waitForParsing(ctx context.Context, out io.Writer, api *client.Client,
 	if interval <= 0 {
 		interval = 2 * time.Second
 	}
-	if timeout <= 0 {
-		timeout = 10 * time.Minute
-	}
 
 	var mon *parseMonitor
 	if out != nil {
@@ -143,8 +140,13 @@ func waitForParsing(ctx context.Context, out io.Writer, api *client.Client,
 }
 
 // waitParseOne 轮询单个文档，直到解析进入终态、超时或上下文取消。
+// timeout <= 0 表示不超时，仅靠上下文取消退出。
 func waitParseOne(ctx context.Context, api *client.Client, id string, interval, timeout time.Duration) (string, string) {
-	deadline := time.Now().Add(timeout)
+	hasDeadline := timeout > 0
+	var deadline time.Time
+	if hasDeadline {
+		deadline = time.Now().Add(timeout)
+	}
 	for {
 		k, err := api.GetKnowledge(ctx, id)
 		if err != nil {
@@ -162,7 +164,7 @@ func waitParseOne(ctx context.Context, api *client.Client, id string, interval, 
 		default:
 			// 未知状态按未完成处理，避免误判为成功。
 		}
-		if time.Now().After(deadline) {
+		if hasDeadline && time.Now().After(deadline) {
 			return statusFailed, fmt.Sprintf("解析超时 %s（当前状态 %s）",
 				timeout, defaultString(k.ParseStatus, "unknown"))
 		}

@@ -134,7 +134,7 @@ func newPublishUploadCommand() *cobra.Command {
 	flags.StringVar(&o.stateFile, "state-file", "", "上传结果保存路径（默认 .uvdoc/upload-<知识库>.json）")
 	flags.BoolVar(&o.waitParse, "wait-parse", true, "上传后等待文档解析完成再返回（关闭后仅确认上传成功）")
 	flags.DurationVar(&o.pollInterval, "poll-interval", 2*time.Second, "解析状态轮询间隔（配合 --wait-parse）")
-	flags.DurationVar(&o.parseTimeout, "parse-timeout", 10*time.Minute, "单个文档解析等待超时（配合 --wait-parse）")
+	flags.DurationVar(&o.parseTimeout, "parse-timeout", 0, "单个文档解析等待超时，0 表示不超时（配合 --wait-parse）")
 
 	cmd.AddCommand(newUploadRetryCommand())
 	return cmd
@@ -159,8 +159,8 @@ func validateUploadOptions(o uploadOptions) error {
 	if o.waitParse && o.pollInterval <= 0 {
 		return fmt.Errorf("--poll-interval 必须大于 0")
 	}
-	if o.waitParse && o.parseTimeout <= 0 {
-		return fmt.Errorf("--parse-timeout 必须大于 0")
+	if o.waitParse && o.parseTimeout < 0 {
+		return fmt.Errorf("--parse-timeout 不能为负数")
 	}
 	info, err := os.Stat(o.docDir)
 	if err != nil {
